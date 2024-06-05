@@ -1,0 +1,4 @@
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Allow any user on the local network to connect to any database
+host    all             all             0.0.0.0/0               md5
