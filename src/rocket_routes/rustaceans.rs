@@ -1,8 +1,8 @@
 //define endpoints for CRUD Operation;
 use crate::{
-    models::{NewRustacean, Rustacean},
+    models::{NewRustacean, Rustacean, User},
     repositories::RustaceanRepository,
-    DBConnection,
+    DBConnection, EditorUser,
 };
 use rocket::{
     http::Status,
@@ -12,7 +12,7 @@ use rocket::{
 use serde_json::Value;
 
 #[get("/rustaceans")]
-pub async fn get_rustaceans(db: DBConnection) -> Result<Value, Custom<Value>> {
+pub async fn get_rustaceans(db: DBConnection, _user: User) -> Result<Value, Custom<Value>> {
     db.run(
         |c| match RustaceanRepository::find_multiple_records(c, 100) {
             Ok(rustaceans) => Ok(json!(rustaceans)),
@@ -29,7 +29,11 @@ pub async fn get_rustaceans(db: DBConnection) -> Result<Value, Custom<Value>> {
 }
 
 #[get("/rustaceans/<id>")]
-pub async fn view_rustacean(db: DBConnection, id: i32) -> Result<Value, Custom<Value>> {
+pub async fn view_rustacean(
+    db: DBConnection,
+    _user: User,
+    id: i32,
+) -> Result<Value, Custom<Value>> {
     db.run(move |c| match RustaceanRepository::find_record(c, id) {
         Ok(rustacean) => Ok(json!(rustacean)),
         Err(err) => {
@@ -46,6 +50,7 @@ pub async fn view_rustacean(db: DBConnection, id: i32) -> Result<Value, Custom<V
 #[post("/rustaceans", format = "json", data = "<new_rustacean>")]
 pub async fn create_rustacean(
     db: DBConnection,
+    _user: EditorUser,
     new_rustacean: Json<NewRustacean>,
 ) -> Result<Custom<Value>, Custom<Value>> {
     db.run(
@@ -66,6 +71,7 @@ pub async fn create_rustacean(
 #[put("/rustaceans/<id>", format = "json", data = "<rustacean>")]
 pub async fn update_rustacean(
     db: DBConnection,
+    _user: EditorUser,
     id: i32,
     rustacean: Json<Rustacean>,
 ) -> Result<Value, Custom<Value>> {
@@ -85,7 +91,11 @@ pub async fn update_rustacean(
 }
 
 #[delete["/rustaceans/<id>"]]
-pub async fn delete_rustacean(db: DBConnection, id: i32) -> Result<NoContent, Custom<Value>> {
+pub async fn delete_rustacean(
+    db: DBConnection,
+    _user: EditorUser,
+    id: i32,
+) -> Result<NoContent, Custom<Value>> {
     db.run(move |c| match RustaceanRepository::delete_record(c, id) {
         Ok(_) => Ok(NoContent),
         Err(err) => {
