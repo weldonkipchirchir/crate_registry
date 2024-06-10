@@ -1,8 +1,8 @@
 //define endpoints for CRUD Operation;
 use crate::{
-    models::{Crate, NewCrate},
+    models::{Crate, NewCrate, User},
     repositories::CrateRepository,
-    DBConnection,
+    DBConnection, EditorUser,
 };
 use rocket::{
     http::Status,
@@ -12,7 +12,7 @@ use rocket::{
 use serde_json::Value;
 
 #[get("/crates")]
-pub async fn get_crates(db: DBConnection) -> Result<Value, Custom<Value>> {
+pub async fn get_crates(db: DBConnection, _user: User) -> Result<Value, Custom<Value>> {
     db.run(|c| match CrateRepository::find_multiple_records(c, 100) {
         Ok(crates) => Ok(json!(crates)),
         Err(err) => {
@@ -27,7 +27,7 @@ pub async fn get_crates(db: DBConnection) -> Result<Value, Custom<Value>> {
 }
 
 #[get("/crates/<id>")]
-pub async fn view_crate(db: DBConnection, id: i32) -> Result<Value, Custom<Value>> {
+pub async fn view_crate(db: DBConnection, _user: User, id: i32) -> Result<Value, Custom<Value>> {
     db.run(move |c| match CrateRepository::find_record(c, id) {
         Ok(a_crate) => Ok(json!(a_crate)),
         Err(err) => {
@@ -44,6 +44,7 @@ pub async fn view_crate(db: DBConnection, id: i32) -> Result<Value, Custom<Value
 #[post("/crates", format = "json", data = "<new_crates>")]
 pub async fn create_crate(
     db: DBConnection,
+    _user: EditorUser,
     new_crates: Json<NewCrate>,
 ) -> Result<Custom<Value>, Custom<Value>> {
     db.run(
@@ -64,6 +65,7 @@ pub async fn create_crate(
 #[put("/crates/<id>", format = "json", data = "<crates>")]
 pub async fn update_crate(
     db: DBConnection,
+    _user: EditorUser,
     id: i32,
     crates: Json<Crate>,
 ) -> Result<Value, Custom<Value>> {
@@ -83,7 +85,11 @@ pub async fn update_crate(
 }
 
 #[delete["/crates/<id>"]]
-pub async fn delete_crate(db: DBConnection, id: i32) -> Result<NoContent, Custom<Value>> {
+pub async fn delete_crate(
+    db: DBConnection,
+    _user: EditorUser,
+    id: i32,
+) -> Result<NoContent, Custom<Value>> {
     db.run(move |c| match CrateRepository::delete_record(c, id) {
         Ok(_) => Ok(NoContent),
         Err(err) => {
