@@ -9,7 +9,8 @@ services:
       - POSTGRES_DB=app_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    command: ["postgres", "-c", "log_statement=all", "-c", "listen_addresses='*'"]
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf # Mount postgresql.conf
+    command: ["postgres", "-c", "log_statement=all"]
 
   redis:
     image: redis:latest
@@ -18,6 +19,14 @@ services:
     build: .
     environment:
       - DATABASE_URL=postgres://postgres:postgres@postgres/app_db
+      - |
+        ROCKET_DATABASES={
+          postgres={url=postgres://postgres:postgres@postgres/app_db},
+          redis={url=redis://redis:6379}
+        }
+      - SMTP_HOST=smtp.gmail.com
+      - SMTP_USERNAME=weldonkipchirchir23@gmail.com
+      - SMTP_PASSWORD=plltuyjrxqgkmlwx
     ports:
       - 8000:8000
     volumes:
@@ -30,5 +39,5 @@ volumes:
 
 networks:
   default:
-    external:
-      name: crate_registry_default
+    external: true
+    name: crate_registry_default
